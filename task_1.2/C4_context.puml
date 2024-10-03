@@ -1,0 +1,42 @@
+@startuml C4_Elements
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(user, "Пользователь системы")
+Container_Boundary(boundary, "Smart Home") {
+Container(device_proxy_service, "Сервис маршрутизации и обнаружения устройств", "Java")
+Container(device_service, "Сервис управления устройствами", "Java")
+Container(monitoring_service, "Сервис мониторинга и телеметрии", "Java")
+Container(scenario_service, "Сервис управления сценариями", "Java")
+ContainerQueue(queue, "Очередь сообщений", "Kafka")
+
+ContainerDb(device_service_db, "БД сервиса управления устройствами", "Postgres")
+ContainerDb(device_proxy_service_db, "БД сервиса маршрутизации и обнаружения", "Postgres")
+ContainerDb(monitoring_service_db, "БД сервиса мониторинга и телеметрии", "ClickHouse")
+ContainerDb(scenario_service_db, "БД сервиса управления сценариями", "Postgres")
+}
+
+System_Ext(device_control_box, "Коробка управления устройствами")
+
+Rel(user, device_service, "Управление устройствами")
+Rel(user, scenario_service, "Настройка сценариев")
+Rel(user, monitoring_service, "Просмотр исторических данных. Получение текущих данных")
+
+Rel(device_service, device_proxy_service, "Запросы управления через прокси")
+Rel(device_service, device_service_db, " ")
+Rel(device_service, queue, "Async получение события о регистрации нового устройства")
+
+Rel_R(device_proxy_service, device_control_box, "Управление устройствами. Получение текущих данных устройства")
+Rel(device_proxy_service, queue, "Отправка данных телеметрии")
+Rel(device_proxy_service, device_proxy_service_db, " ")
+
+Rel_D(scenario_service, queue, "Async получение данных/состояний устройств для работы сценариев")
+Rel_R(scenario_service, device_service, "Управление устройствами по сценариям")
+Rel(scenario_service, scenario_service_db, " ")
+
+Rel(device_control_box, device_proxy_service, "Отправка данных. Отправка события о регистрации нового устройства")
+
+Rel(monitoring_service, queue, "Async получение данных телеметрии")
+Rel(monitoring_service, device_proxy_service, "Получение текущих данных устройства")
+Rel_R(monitoring_service, monitoring_service_db, " ")
+
+@enduml

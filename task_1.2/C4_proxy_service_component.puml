@@ -1,0 +1,28 @@
+@startuml C4_Elements
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+Container_Boundary(boundary, "Proxy service") {
+Component(service, "Proxy Service layer")
+Component(controller, "Proxy Service controller")
+Component(producer, "Kafka producer")
+Component(api, "Api")
+Component(device_connector, "Сервис общения с устройствами")
+Component(address_cache, "Кэш адресов")
+}
+
+Container_Ext(queue, "Kafka")
+Container_Ext(device_control_box, "Коробка управления устройствами")
+ComponentDb(db, "База данных адресов устройств")
+
+Rel(api, controller, " ")
+Rel(controller, service, " ")
+
+Rel(device_control_box, api, "Отправка данных телеметрии от устройств. Отправка события регистрации нового устройства")
+Rel(service, producer, " ")
+Rel_U(producer, queue, "Публикация данных телеметрии")
+Rel(service, device_connector, "Запросы к устройствам")
+Rel_L(device_connector, device_control_box, "Получение текущих данных по требованию. Отправка команд")
+Rel(device_connector, address_cache, "Получение кэшированного адреса")
+Rel(address_cache, db, "Получение адреса коробки")
+@enduml
