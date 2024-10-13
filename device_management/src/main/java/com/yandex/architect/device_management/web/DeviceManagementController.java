@@ -1,9 +1,9 @@
 package com.yandex.architect.device_management.web;
 
 import com.yandex.architect.device_management.service.DeviceService;
-import com.yandex.architect.device_management.web.dto.DeviceCommandDto;
-import com.yandex.architect.device_management.web.dto.DeviceDto;
-import com.yandex.architect.device_management.web.dto.DeviceStatusDto;
+import com.yandex.architect.device_management.objects.dto.DeviceCommandDto;
+import com.yandex.architect.device_management.objects.dto.DeviceDto;
+import com.yandex.architect.device_management.objects.dto.DeviceStatusDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

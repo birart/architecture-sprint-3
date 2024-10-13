@@ -1,7 +1,7 @@
 package com.yandex.architect.device_management.clients;
 
 import com.yandex.architect.device_management.objects.DeviceStatus;
-import com.yandex.architect.device_management.web.dto.DeviceCommandDto;
+import com.yandex.architect.device_management.objects.dto.DeviceCommandDto;
 import org.springframework.stereotype.Component;
 
 /**

@@ -1,74 +1,61 @@
-# Базовая настройка
+# Описание решения
 
-## Запуск minikube
+## Задание 1.1
+Задание описано в отдельном [README](task_1.1/README.md). Там же создана puml диаграмма уровня контекста C4 [](task_1.1/C4_context.puml)
 
-[Инструкция по установке](https://minikube.sigs.k8s.io/docs/start/)
+## Задание 1.2
+Задание описано в отдельном [README](task_1.2/README.md). Там же создана puml диаграмма уровня контейнеров C4 [](task_1.2/C4_containers.puml) и puml диаграммы уровня компонентов.
 
-```bash
-minikube start
+## Задание 1.3
+Задание описано в отдельном [README](task_1.3/README.md). Там же создана [ER диаграмма](task_1.3/ER.puml) в формате puml
+
+## Задание 1.4
+Документация API сервисов телеметрии и управления устройствами создана в формате yaml.  
+[device management](task_1.4/device_api.yaml)  
+[telemetry](task_1.4/telemetry_api.yaml)
+
+## Базовая настройка
+
+### Сборка образов
+Сборка образов сделана простейшим копированием jar файла. Поэтому, для того чтобы собрать новые образы нужно пересобрать jar файлы. Для этого в директориях device_management и telemetry можно выполнить:
+```shell
+ ./gradlew clean build
 ```
 
+Затем удалить предыдущие версии образов и запустить docker compose. Образы соберутся заново с изменениями.
 
-## Добавление токена авторизации GitHub
-
-[Получение токена](https://github.com/settings/tokens/new)
-
-```bash
-kubectl create secret docker-registry ghcr --docker-server=https://ghcr.io --docker-username=<github_username> --docker-password=<github_token> -n default
+### Запуск docker compose
+Запускаем в корневой директории
+```shell
+docker compose up -d
 ```
 
+### Проверяем работоспособность
 
-## Установка API GW kusk
+Запускаем docker compose по инструкции выше и ожидаем полного запуска всех контейнеров
 
-[Install Kusk CLI](https://docs.kusk.io/getting-started/install-kusk-cli)
+#### Проверка сервиса управления устройствами
 
-```bash
-kusk cluster install
+Для того чтобы получить информацию через REST API нужны данные в БД. Приложение подписано на топик 'device_register', куда можно отправить событие регистрации нового устройства и оно добавится в БД Postgres.
+Для этого можно воспользоваться, например kafka-ui, который идет в составе docker compose и его можно открыть на localhost:8083.
+Для топика device_register можно отправлять сообщения с value вида:
+```json
+{"moduleId":1,"name":"temp_sensor","type":"temperature","status":"0","serial":"00000123"}
 ```
 
+Затем через API на localhost:8081 можно получить информацию об устройстве из БД или сменить статус. Выполнение команд не реализовано в данном сервисе, так как по задумке команды выполняются через прокси, который в этом задании не реализован.
 
-## Настройка terraform
+#### Проверка сервиса телеметрии
 
-[Установите Terraform](https://yandex.cloud/ru/docs/tutorials/infrastructure-management/terraform-quickstart#install-terraform)
+Для того чтобы получить информацию через REST API нужны данные в БД. Приложение подписано на топик 'telemetry', куда можно отправить событие телеметрии и оно сохранится в БД ClickHouse.
 
-
-Создайте файл ~/.terraformrc
-
-```hcl
-provider_installation {
-  network_mirror {
-    url = "https://terraform-mirror.yandexcloud.net/"
-    include = ["registry.terraform.io/*/*"]
-  }
-  direct {
-    exclude = ["registry.terraform.io/*/*"]
-  }
-}
+Для этого опять же можно воспользоваться kafka-ui и отправить в топик telemetry сообщение c value следующего вида:
+```json
+{"deviceId": 1,"value": 25,"type": "temperature"}
 ```
 
-## Применяем terraform конфигурацию 
-
-```bash
-cd terraform
-terraform apply
+Затем через API на localhost:8082 можно получить данные телеметрии устройства.
+Пример запроса телеметрии за определенный период с пагинацией:
 ```
-
-## Настройка API GW
-
-```bash
-kusk deploy -i api.yaml
-```
-
-## Проверяем работоспособность
-
-```bash
-kubectl port-forward svc/kusk-gateway-envoy-fleet -n kusk-system 8080:80
-curl localhost:8080/hello
-```
-
-
-## Delete minikube
-
-```bash
-minikube delete
+http://localhost:8082/devices/1/telemetry?date_start=1970-01-01T00:00:00&date_end=2025-10-20T20:40:05&page=1&page_size=10
 ```

@@ -1,4 +1,4 @@
-package com.yandex.architect.device_management.web.dto;
+package com.yandex.architect.device_management.objects.dto;
 
 public class DeviceStatusDto {
     private String status;
