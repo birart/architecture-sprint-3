@@ -1,0 +1,27 @@
+@startuml C4_Elements
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+Container_Boundary(boundary, "Monitoring service") {
+Component(api, "API")
+Component(controller, "Monitoring controller")
+Component(service, "Monitoring service")
+Component(repo, "Repository")
+Component(consumer, "Kafka consumer service")
+Component(proxy_api_client, "Proxy API Client")
+
+Rel_D(api, controller, " Получение данных мониторинга. Исторических или актуальных")
+Rel(controller, service, " ")
+Rel(service, repo, "Загрузка/сохранение данных")
+Rel(service, proxy_api_client, "Запрос текущих данных устройств")
+}
+ComponentDb(db, "Monitoring DB")
+
+Container_Ext(proxy, "Proxy service")
+Container_Ext(queue, "Kafka")
+Rel_D(repo, db, "Хранение данных мониторинга")
+Rel_D(proxy_api_client, proxy, "Получение текущего состояния устройства")
+Rel_D(consumer, queue, "Асинхронное получение данных телеметрии")
+Rel_D(consumer, service, "Обработка данных")
+
+@enduml

@@ -1,74 +1,56 @@
-# Базовая настройка
+# Описание решения
 
-## Запуск minikube
+## Задание 1.1
+Задание описано в отдельном [README](task_1.1/README.md). Там же создана puml диаграмма уровня контекста C4 [](task_1.1/C4_context.puml)
 
-[Инструкция по установке](https://minikube.sigs.k8s.io/docs/start/)
+## Задание 1.2
+Задание описано в отдельном [README](task_1.2/README.md). Там же создана puml диаграмма уровня контейнеров C4 [](task_1.2/C4_containers.puml) и puml диаграммы уровня компонентов.
 
-```bash
-minikube start
+## Задание 1.3
+Задание описано в отдельном [README](task_1.3/README.md). Там же создана [ER диаграмма](task_1.3/ER.puml) в формате puml
+
+## Задание 1.4
+Документация API сервисов телеметрии и управления устройствами создана в формате yaml.  
+[device management](task_1.4/device_api.yaml)  
+[telemetry](task_1.4/telemetry_api.yaml)
+
+## Базовая настройка
+
+### Сборка образов
+Сборка образов выполняется при запуске. В Dockerfile описан multi-stage build.
+
+### Запуск docker compose
+Запускаем в корневой директории
+```shell
+docker compose up -d
 ```
 
+### Проверяем работоспособность
 
-## Добавление токена авторизации GitHub
+Запускаем docker compose по инструкции выше и ожидаем полного запуска всех контейнеров
 
-[Получение токена](https://github.com/settings/tokens/new)
+#### Проверка сервиса управления устройствами
 
-```bash
-kubectl create secret docker-registry ghcr --docker-server=https://ghcr.io --docker-username=<github_username> --docker-password=<github_token> -n default
+Для того чтобы получить информацию через REST API нужны данные в БД. Приложение подписано на топик 'device_register', куда можно отправить событие регистрации нового устройства и оно добавится в БД Postgres.
+Для этого можно воспользоваться, например kafka-ui, который идет в составе docker compose и его можно открыть на localhost:8083.
+Для топика device_register можно отправлять сообщения с value вида:
+```json
+{"moduleId":1,"name":"temp_sensor","type":"temperature","status":"0","serial":"00000123"}
 ```
 
+Затем через API на localhost:8081 можно получить информацию об устройстве из БД или сменить статус. Выполнение команд не реализовано в данном сервисе, так как по задумке команды выполняются через прокси, который в этом задании не реализован.
 
-## Установка API GW kusk
+#### Проверка сервиса телеметрии
 
-[Install Kusk CLI](https://docs.kusk.io/getting-started/install-kusk-cli)
+Для того чтобы получить информацию через REST API нужны данные в БД. Приложение подписано на топик 'telemetry', куда можно отправить событие телеметрии и оно сохранится в БД ClickHouse.
 
-```bash
-kusk cluster install
+Для этого опять же можно воспользоваться kafka-ui и отправить в топик telemetry сообщение c value следующего вида:
+```json
+{"deviceId": 1,"value": 25,"type": "temperature"}
 ```
 
-
-## Настройка terraform
-
-[Установите Terraform](https://yandex.cloud/ru/docs/tutorials/infrastructure-management/terraform-quickstart#install-terraform)
-
-
-Создайте файл ~/.terraformrc
-
-```hcl
-provider_installation {
-  network_mirror {
-    url = "https://terraform-mirror.yandexcloud.net/"
-    include = ["registry.terraform.io/*/*"]
-  }
-  direct {
-    exclude = ["registry.terraform.io/*/*"]
-  }
-}
+Затем через API на localhost:8082 можно получить данные телеметрии устройства.
+Пример запроса телеметрии за определенный период с пагинацией:
 ```
-
-## Применяем terraform конфигурацию 
-
-```bash
-cd terraform
-terraform apply
-```
-
-## Настройка API GW
-
-```bash
-kusk deploy -i api.yaml
-```
-
-## Проверяем работоспособность
-
-```bash
-kubectl port-forward svc/kusk-gateway-envoy-fleet -n kusk-system 8080:80
-curl localhost:8080/hello
-```
-
-
-## Delete minikube
-
-```bash
-minikube delete
+http://localhost:8082/devices/1/telemetry?date_start=1970-01-01T00:00:00&date_end=2025-10-20T20:40:05&page=1&page_size=10
 ```

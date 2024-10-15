@@ -1,0 +1,193 @@
+openapi: "3.0.3"
+info:
+  description: "Telemetry API"
+  version: 1.0.0
+  title: Telemetry Service API
+
+paths:
+  /devices/{device_id}/telemetry/latest:
+    get:
+      summary: Возвращает последнее полученное значение телеметрии для устройства.
+      parameters:
+        - name: device_id
+          in: path
+          description: ID устройства
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        200:
+          description: Успешное получение данных телеметрии
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TelemetryDataEntry'
+              example: {
+                "CPU": [
+                  {
+                    "value": 20,
+                    "date": "string"
+                  }
+                ],
+                "temperature": [
+                  {
+                    "value": 22,
+                    "date": "string"
+                  }
+                ],
+                "brightness": [
+                  {
+                    "value": 50,
+                    "date": "string"
+                  }
+                ]
+              }
+        400:
+          description: Некорректный запрос
+        404:
+          description: Устройство не найдено
+        500:
+          description: Ошибка сервера
+
+  /devices/{device_id}/telemetry:
+    get:
+      summary: Возвращает исторические данные телеметрии для устройства за определённый период времени.
+      parameters:
+        - name: device_id
+          in: path
+          description: ID устройства
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: date_start
+          in: query
+          description: Нижняя граница данных телеметрии по времени
+          schema:
+            type: string
+            format: timestamp
+        - name: date_end
+          in: query
+          description: Верхняя граница данных телеметрии по времени
+          schema:
+            type: string
+            format: timestamp
+        - name: page
+          in: query
+          description: Номер страницы для пагинации данных
+          schema:
+            type: integer
+            minimum: 1
+        - name: page_size
+          in: query
+          description: Размер страницы для пагинации данных
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        200:
+          description: Успешное получение данных телеметрии
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TelemetryDataEntry'
+              example: {
+                  "CPU": [
+                    {
+                      "value": 20,
+                      "date": "string"
+                    },
+                    {
+                      "value": 21,
+                      "date": "string"
+                    }
+                  ],
+                  "temperature": [
+                    {
+                      "value": 22,
+                      "date": "string"
+                    },
+                    {
+                      "value": 23,
+                      "date": "string"
+                    }
+                  ],
+                  "brightness": [
+                    {
+                      "value": 50,
+                      "date": "string"
+                    },
+                    {
+                      "value": 60,
+                      "date": "string"
+                    }
+                  ]
+                }
+        404:
+          description: Данные не найдены
+        500:
+          description: Ошибка сервера
+    post:
+      summary: Сохранить данные телеметрии для устройства
+      parameters:
+        - name: device_id
+          in: path
+          description: ID устройства
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TelemetryDataPost'
+            example: {
+              "value": 20.5,
+              "type": "temperature"
+            }
+      responses:
+        200:
+          description: Успешное сохранение данных телеметрии
+        500:
+          description: Ошибка сервера
+
+components:
+  schemas:
+    TelemetryValue:
+      type: object
+      properties:
+        value:
+          description: Значение телеметрии
+          type: number
+        date:
+          description: Дата получения
+          type: string
+          format: timestamp
+    TelemetryValueArray:
+      type: array
+      items:
+        $ref: '#/components/schemas/TelemetryValue'
+    TelemetryDataType:
+      type: string
+      enum:
+        - CPU
+        - temperature
+        - brightness
+    TelemetryDataEntry:
+      type: object
+      additionalProperties:
+        $ref: '#/components/schemas/TelemetryValueArray'
+    TelemetryDataPost:
+      type: object
+      properties:
+        value:
+          type: number
+        'type':
+          type: string
+
+
+
+
+

@@ -1,0 +1,147 @@
+openapi: "3.0.3"
+info:
+  description: "Device Service API"
+  version: 1.0.0
+  title: Device Service API
+paths:
+  /devices/{device_id}:
+    get:
+      summary: Возвращает подробную информацию о конкретном устройстве по его ID
+      parameters:
+        - name: device_id
+          in: path
+          description: ID устройства
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        200:
+          description: Успешное получение данных устройства
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceInfo'
+              example: {
+                "id": 1,
+                "module_id": 1,
+                "name": "Датчик температуры на кухне",
+                "type": 1,
+                "status": {
+                  "status_code": 1
+                },
+                "serial": "000019_tmp"
+              }
+        404:
+          description: Устройство не найдено
+        500:
+          description: Ошибка сервера
+
+  /devices/{device_id}/status:
+    put:
+      summary: Позволяет изменить состояние устройства (например, включить/выключить).
+      parameters:
+        - name: device_id
+          in: path
+          description: ID устройства
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeviceStatus'
+            example: {
+              "status_code": 1
+            }
+      responses:
+        202:
+          description: Принято в обработку
+        400:
+          description: Некорректный статус
+        404:
+          description: Устройство не найдено
+        500:
+          description: Ошибка сервера
+
+  /devices/{device_id}/commands:
+    post:
+      summary: Отправляет команду устройству (например, «установить температуру 22 градуса»).
+      parameters:
+        - name: device_id
+          in: path
+          description: ID устройства
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Command'
+            example: {
+              "action": "set",
+              "value": {
+                "value": 22,
+                "value_type": "temperature"
+              }
+            }
+      responses:
+        202:
+          description: Команда принята в обработку
+        400:
+          description: Некорректный запрос
+        404:
+          description: Устройство не найдено
+        500:
+          description: Ошибка сервера
+
+components:
+  schemas:
+    DeviceInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+        module_id:
+          type: integer
+        name:
+          type: string
+        'type':
+          type: integer
+        status:
+          $ref: '#/components/schemas/DeviceStatus'
+        serial:
+          type: string
+    DeviceStatus:
+      type: object
+      properties:
+        status_code:
+          type: integer
+    Command:
+      type: object
+      properties:
+        device_id:
+          type: integer
+        command:
+          type: string
+          enum:
+            - set
+            - reboot
+            - disable
+            - enable
+            - turn_on
+            - turn_off
+        'type':
+          type: string
+          enum:
+            - temperature
+            - brightness
+        value:
+          type: number
+
+
+

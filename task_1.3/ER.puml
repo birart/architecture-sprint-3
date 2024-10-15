@@ -1,0 +1,54 @@
+@startuml ER-Diagramm
+entity User {
+    * id : int
+    --
+    name : varchar
+    password : varchar
+}
+
+entity House {
+    * id : int
+    --
+    user_id : int
+    name : varchar
+}
+
+entity Module {
+    * id : int
+    --
+    house_id : int
+    name : varchar
+    status: int
+}
+
+entity Device {
+    * id : int
+    --
+    module_id : int
+    serial: varchar
+    name : varchar
+    type: int
+    status: int
+}
+
+entity DeviceType {
+    * id : int
+    --
+    protocol : int
+}
+
+entity TelemetryData {
+    * id : int
+    --
+    device_id : int
+    value: double
+    date: timestamp
+    type: varchar
+}
+
+User ||--o{ House : "Пользователь может иметь несколько домов/помещений или не иметь вообще, если он только что зарегистрировался"
+House ||--o{ Module : "В доме может стоять несколько модулей или не стоять вообще, если дом только что создан"
+Module ||--o{ Device : "К модулю может быть подключено несколько устройств"
+Device ||--o{ TelemetryData : "Отправляет разные типы данных, с разным временем"
+
+@enduml

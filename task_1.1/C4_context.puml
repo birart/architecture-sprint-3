@@ -1,0 +1,10 @@
+@startuml C4_Elements
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+Person(user, "Пользователь системы")
+System(smart_home_monolith, "Smart Home Monolith System")
+System(sensor, "Датчики и системы", $sprite=robot)
+
+Rel(user, smart_home_monolith, "Получение данных температуры. Управление отоплением")
+
+Rel(smart_home_monolith, sensor, "Получение данных. Управление", "")
+@enduml

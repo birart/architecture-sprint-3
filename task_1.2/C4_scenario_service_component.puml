@@ -1,0 +1,32 @@
+@startuml C4_Elements
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+Container_Boundary(boundary, "Scenario service") {
+Component(api, "API")
+Component(cron_manager, "Менеджер cron-задач")
+Component(controller, "Scenario controller")
+Component(service, "Scenario control service")
+Component(repo, "Repository")
+Component(cron_repo, "Cron task Repository")
+Component(consumer, "Kafka consumer service")
+Component(device_control_api_client, "Device service API client")
+}
+ComponentDb(db, "Scenario DB")
+
+Container_Ext(queue, "Kafka")
+Container_Ext(device_control_service, "Сервис управления устройствами")
+
+Rel_D(api, controller, " ")
+Rel(controller, service, " ")
+Rel(service, repo, "Управление сущностями сценариев")
+Rel(service, device_control_api_client, "Управление устройствами по сценариям")
+Rel_D(repo, db, "Хранение сценариев")
+Rel_R(consumer, queue, "Асинхронное получение событий и данных для работы сценариев")
+Rel_D(consumer, service, "Обработка данных и событий для сценариев")
+Rel_R(cron_manager, service, "Запуск сценариев по cron")
+Rel(cron_manager, cron_repo, "Управление сущностями cron задач")
+Rel(cron_repo, db, "Загрузка и хранение cron-задач")
+Rel(device_control_api_client, device_control_service, "Отправка команд по сценариям")
+
+@enduml

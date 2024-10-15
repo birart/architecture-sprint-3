@@ -1,0 +1,27 @@
+@startuml C4_Elements
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+Container_Boundary(boundary, "Device service") {
+Component(api, "API")
+Component(controller, "Device controller")
+Component(service, "Device control service")
+Component(repo, "Repository")
+Component(consumer, "Kafka consumer service")
+Component(proxy_api_client, "Proxy API Client")
+
+Rel_D(api, controller, " ")
+Rel(controller, service, " ")
+Rel(service, repo, " ")
+Rel(service, proxy_api_client, "Управление устройствами")
+}
+ComponentDb(db, "Device service DB")
+
+Container_Ext(proxy, "Proxy service")
+Container_Ext(queue, "Kafka")
+Rel_D(repo, db, "Хранение устройств")
+Rel_D(proxy_api_client, proxy, "Отправка команд")
+Rel_D(consumer, queue, "Получение событий о новом устройстве")
+Rel_D(consumer, service, "Обработка событий")
+
+@enduml
