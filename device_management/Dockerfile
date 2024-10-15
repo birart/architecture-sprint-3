@@ -1,4 +1,9 @@
+FROM gradle:8.10.2-jdk17 AS build
+COPY --chown=gradle:gradle . /home/gradle/src
+WORKDIR /home/gradle/src
+RUN gradle build --no-daemon
+
 FROM openjdk:17.0.1
 WORKDIR /app
-COPY build/libs/device_management-1.jar .
-ENTRYPOINT ["java", "-jar", "device_management-1.jar"]
+COPY --from=build /home/gradle/src/build/libs/device_management-*.jar /app/device_management.jar
+ENTRYPOINT ["java", "-jar", "device_management.jar"]
